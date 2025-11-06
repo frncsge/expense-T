@@ -13,7 +13,7 @@ const db = new pg.Client({
 });
 db.connect();
 
-const userId = 1;
+let userId = null;
 
 app.use(express.static("public"));
 app.use(express.json());
@@ -32,7 +32,15 @@ app.get("/login", (req, res) => {
 app.get("/dashboard", async (req, res) => {
   const { categoryId } = req.query;
 
+  if (!userId) {
+    return res.redirect("/login");
+  }
+
   try {
+    const userResult = await db.query("SELECT * FROM users WHERE userid = $1", [
+      userId,
+    ]);
+
     const budgetResult = await db.query(
       "SELECT * FROM budget WHERE userid = $1;",
       [userId]
@@ -46,6 +54,7 @@ app.get("/dashboard", async (req, res) => {
       [userId]
     );
 
+    const user = userResult.rows[0];
     const totalSpent = totalExpense.rows[0].total_amount || 0;
     const totalBudget = budgetResult.rows[0]?.amount || 0;
     const remaining = totalBudget; // Since we auto-deduct on insert
@@ -67,6 +76,7 @@ app.get("/dashboard", async (req, res) => {
     }
 
     res.render("dashb.ejs", {
+      username: user.username,
       categories: categoriesResult.rows,
       budget: remaining,
       selectedCategory,
@@ -230,8 +240,52 @@ app.post("/login", async (req, res) => {
         message: "Invalid username or password",
       });
 
+    //set userId
+    userId = result.rows[0].userid;
     res.redirect("/dashboard");
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
   }
+});
+
+//register route
+app.post("/register", async (req, res) => {
+  const { username, password, confirmPassword } = req.body;
+  const saltRounds = 10;
+  try {
+    //check if username already exists
+    const result = await db.query("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
+    const storedUsername = result.rows[0];
+    if (storedUsername)
+      return res.render("register.ejs", { message: "Email is already in use" });
+
+    //check if password matches with confirm password
+    if (password !== confirmPassword)
+      return res.render("register.ejs", { message: "Passwords don't match" });
+
+    //hash password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    //store username and password
+    const newUser = await db.query(
+      "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING userid",
+      [username, hashedPassword]
+    );
+    const newUserId = newUser.rows[0].userid;
+
+    //set userId
+    userId = newUserId;
+    res.redirect("/dashboard");
+  } catch (error) {
+    console.error(error);
+    res.render("register.ejs", {
+      message: "Internal server error. Try again later",
+    });
+  }
+});
+
+app.post("/logout", (req, res) => {
+  userId = null;
 });

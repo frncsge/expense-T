@@ -1,33 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <link rel="stylesheet" type="text/css" href="styles/login.css" />
-</head>
-<body>
+  </head>
+  <body>
     <div class="login-container">
-        <h2>Login</h2>
-        <form method="POST" action="/login">
-             <div class="input-group">
-                <input type="text" name="username" required>
-                <label>Username</label>
-             </div>
-             <div class="input input-group">
-                <input type="password" name="password" required>
-                <label>Password</label>
-            </div>
-            
-            <% if (locals.message) { %>
-                <span style="color: red;"><%= message %></span>
-            <% } %>
-            <button type="submit" class="login-button">Login</button>
-            <div class="register-link">
-                <p>Don't have an account? <a href="register.html" class="register">Register</a> </a></p>
-            </div>
-    
-        </form>
+      <h2>Login</h2>
+      <form method="POST" action="/login">
+        <div class="input-group">
+          <input type="text" name="username" required />
+          <label>Username</label>
+        </div>
+        <div class="input input-group">
+          <input type="password" name="password" required />
+          <label>Password</label>
+        </div>
+
+        <% if (locals.message) { %>
+        <span style="color: red"><%= message %></span>
+        <% } %>
+        <button type="submit" class="login-button">Login</button>
+        <div class="register-link">
+          <p>
+            Don't have an account?
+            <a href="/register" class="register">Register</a>
+          </p>
+        </div>
+      </form>
     </div>
-</body>
+  </body>
 </html>

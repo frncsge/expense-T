@@ -14,6 +14,22 @@
         <h2>Budget: ₱<%= budget || 0 %></h2>
         <button id="set-budget-btn">💵 Set Budget</button>
       </div>
+      <span
+        style="
+          margin-top: 1rem;
+          display: inline-block;
+          width: 40px;
+          height: 40px;
+          background-color: rgb(255, 255, 255);
+          border-radius: 50%;
+          display: inline-flex;
+          justify-content: center;
+          align-items: center;
+        "
+        >👹</span
+      >
+      <span style="margin-top: 10px"><%= username %></span>
+      <button onclick="handleLogOut()">Log out</button>
     </header>
 
     <!-- Categories Section -->
@@ -219,6 +235,17 @@
         window.location.reload();
       } else {
         alert("Failed to delete expense.");
+      }
+    }
+
+    function handleLogOut() {
+      const answer = confirm("Are you sure you want to log out?");
+
+      if (answer) {
+        fetch("/logout", {
+          method: "post",
+        });
+        window.location.reload();
       }
     }
   </script>

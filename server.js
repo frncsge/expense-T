@@ -1,5 +1,6 @@
 import express from "express";
 import pg from "pg";
+import bcrypt from "bcrypt";
 
 const app = express();
 const port = 3000;
@@ -16,6 +17,7 @@ const userId = 1;
 
 app.use(express.static("public"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
@@ -200,5 +202,36 @@ app.post("/expense", async (req, res) => {
   } catch (error) {
     console.error("Error adding expense:", error);
     res.status(500).json({ error: "Failed to add expense" });
+  }
+});
+
+//login route
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    //check if username is correct
+    const result = await db.query("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
+    const storedUsername = result.rows[0]?.username;
+    if (!storedUsername)
+      return res.render("login.ejs", {
+        message: "Invalid username or password",
+      });
+
+    //check password if correct
+    const storedPasswordHash = result.rows[0].password_hash;
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      storedPasswordHash
+    );
+    if (!isPasswordCorrect)
+      return res.render("login.ejs", {
+        message: "Invalid username or password",
+      });
+
+    res.redirect("/dashboard");
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
   }
 });
